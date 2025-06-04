@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: my_postgres_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: directus_user
+      POSTGRES_PASSWORD: directus_password
+      POSTGRES_DB: directus_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  directus:
+    image: directus/directus:latest
+    container_name: my_directus_cms
+    ports:
+      - "8055:8055"
+    environment:
+      KEY: "your-strong-random-key" # Change this!
+      SECRET: "your-equally-strong-random-secret" # Change this!
+      DB_CLIENT: "pg"
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: directus_db
+      DB_USER: directus_user
+      DB_PASSWORD: directus_password
+      ADMIN_EMAIL: "admin@example.com" # Change this!
+      ADMIN_PASSWORD: "your-admin-password" # Change this!
+      # WEBSOCKETS_ENABLED: "true" # Uncomment if you need websockets
+      # CACHE_ENABLED: "true" # Uncomment for caching (requires Redis)
+      # CACHE_STORE: "redis"
+      # CACHE_REDIS: "redis://cache:6379"
+    volumes:
+      - directus_uploads:/directus/uploads
+    depends_on:
+      - postgres
+      # - cache # Uncomment if using Redis
+    networks:
+      - app_network
+    restart: unless-stopped
+
+  # Optional Redis for caching
+  # cache:
+  #   image: redis:6-alpine
+  #   container_name: my_directus_cache
+  #   networks:
+  #     - app_network
+  #   restart: unless-stopped
+
+  frontend:
+    container_name: frontend
+    # Assuming your Angular app's Dockerfile is in an 'angular-app' directory
+    # and your Angular code is also in that directory.
+    build:
+      context: ./frontend # Path to your Angular app's root directory
+      dockerfile: Dockerfile
+    ports:
+      - "4200:3000" # Maps host port 4200 to container port 3000
+    # If you want live reloading during development, mount your source code:
+    volumes:
+     - ./frontend/src:/app/src # Adjust path as per your Angular project structure
+    networks:
+      - app_network
+    depends_on:
+      - directus # Optional: if Angular app needs Directus to be up first
+    restart: unless-stopped
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  directus_uploads:
