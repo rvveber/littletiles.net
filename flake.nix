@@ -16,14 +16,12 @@
             pkgs.docker
             pkgs.docker-buildx
             pkgs.bun
-            pkgs.angular-language-server
         ];
         
         shellHook = ''
             export COMPOSE_BAKE=true;
             export DOCKER_BUILDKIT=1;
 
-            docker compose down || true;
             docker compose up -d --build || true;        
         '';
 
