@@ -7,9 +7,9 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_USER: directus_user
-      POSTGRES_PASSWORD: directus_password
-      POSTGRES_DB: directus_db
+      POSTGRES_USER: directus_user # Change this!
+      POSTGRES_PASSWORD: directus_password # Change this!
+      POSTGRES_DB: directus_db # Change this!
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -27,9 +27,9 @@ services:
       DB_CLIENT: "pg"
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_DATABASE: directus_db
-      DB_USER: directus_user
-      DB_PASSWORD: directus_password
+      DB_DATABASE: directus_db # Change this!
+      DB_USER: directus_user # Change this!
+      DB_PASSWORD: directus_password # Change this!
       ADMIN_EMAIL: "admin@example.com" # Change this!
       ADMIN_PASSWORD: "your-admin-password" # Change this!
       # WEBSOCKETS_ENABLED: "true" # Uncomment if you need websockets
@@ -55,20 +55,17 @@ services:
 
   frontend:
     container_name: frontend
-    # Assuming your Angular app's Dockerfile is in an 'angular-app' directory
-    # and your Angular code is also in that directory.
     build:
-      context: ./frontend # Path to your Angular app's root directory
+      context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "4200:3000" # Maps host port 4200 to container port 3000
-    # If you want live reloading during development, mount your source code:
+      - "4200:3000"
     volumes:
-     - ./frontend/src:/app/src # Adjust path as per your Angular project structure
+     - ./frontend/src:/app/src
     networks:
       - app_network
     depends_on:
-      - directus # Optional: if Angular app needs Directus to be up first
+      - directus
     restart: unless-stopped
 
 networks:
