@@ -1,0 +1,7 @@
+# Override for development
+services:
+  frontend:
+    build: 
+      target: development
+    volumes:
+      - ./frontend:/app 

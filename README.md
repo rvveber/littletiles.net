@@ -16,7 +16,4 @@ We're using flakes to manage the development environment.
 
 
 <br>
-Done! You can now start developing:
-
-The backend is reachable under `http://localhost:8055`.<br>
-The frontend is reachable under `http://localhost:4200`.
+Done! You can now start developing

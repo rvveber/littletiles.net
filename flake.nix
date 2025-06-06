@@ -12,19 +12,22 @@
   in {
     devShells.${system}.default = pkgs.mkShell {
         
-        buildInputs = [
+        buildInputs = [            
             pkgs.docker
-            pkgs.docker-buildx
             pkgs.bun
         ];
         
         shellHook = ''
-            export COMPOSE_BAKE=true;
-            export DOCKER_BUILDKIT=1;
+          docker compose up --build -d --remove-orphans || true;
+          
+          # production command
+          # docker compose up -d --remove-orphans --build -f compose.yml
 
-            docker compose up -d --build || true;        
+          echo "Development environment is up and running!";
+          echo "You can access them at the following URLs:";
+          echo "  Backend:  http://localhost:8055";
+          echo "  Frontend: http://localhost:3000";
         '';
-
     };	
   };
 }

@@ -1,38 +1,58 @@
-# Build stage
-FROM oven/bun:1 AS build
-
+# Stage 1: Gemeinsame Basis für Dependencies
+# =========================================================
+FROM oven/bun:1-alpine AS base
 WORKDIR /app
-
-# Copy package files for better layer caching
 COPY package.json bun.lock ./
-
-# Install all dependencies (including dev dependencies for building)
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile
 
-# Copy source code
+
+# Stage 2: Target für die Entwicklung
+# ===============================================
+FROM base AS development
+ENV NODE_ENV=development \
+    PORT=3000
+
+# package.json und bun.lock sind bereits aus der "base"-Stage vorhanden.
 COPY . .
 
-# Build the application
+# Führe "prepare" aus, um SvelteKit zu synchronisieren
 RUN bun --bun run prepare
-RUN bun --bun run build
 
-# Production stage
-FROM oven/bun:1 AS production
+EXPOSE $PORT
+CMD bun --bun run dev --host 0.0.0.0 --port ${PORT}
 
-ENV NODE_ENV=production
+
+# Stage 3: Stage zum Bauen der Produktions-Artefakte
+# ============================================================
+FROM base AS build
+ARG NODE_ENV=production
+
+# package.json und bun.lock sind bereits aus der "base"-Stage vorhanden.
+COPY . .
+
+# Baue die Anwendung
+RUN bun --bun run prepare && bun --bun run build
+
+
+# Stage 4: Produktions-Stage
+# ===========================================================
+FROM oven/bun:1-alpine AS production
+
+# Installiere curl für den Healthcheck, lösche den Cache danach
+RUN apk add --no-cache curl
+
+ENV NODE_ENV=production \
+    PORT=3000
 WORKDIR /app
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S svelte -u 1001
+COPY --from=build --chown=svelte:nodejs /app/build ./build
+USER svelte
 
-# Copy built application and package.json
-COPY --from=build /app/build ./build
-COPY --from=build /app/package.json ./
+# HEALTHCHECK: Prüft, ob der App-Server antwortet
+HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
+    CMD curl --fail "http://localhost:${PORT}/" || exit 1
 
-# Install only production dependencies
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --production --frozen-lockfile
-
-# Expose port 3000
-EXPOSE 3000
-
-# Run the SvelteKit server
+EXPOSE $PORT
 CMD ["bun", "--bun", "run", "build/index.js"]
