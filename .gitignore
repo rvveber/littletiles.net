@@ -9,3 +9,8 @@
 
 # Nix related files
 .direnv
+
+# We don't want to see these anywhere
+.DS_Store
+node_modules
+dist

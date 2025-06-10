@@ -1,7 +1,28 @@
 # Override for development
 services:
+
+  backend:
+    environment:
+      - PUBLIC_URL=http://localhost:8055
+
+      - AUTH_MICROSOFT_REDIRECT_ALLOW_LIST=http://localhost:3000/login
+
+      - SESSION_COOKIE_DOMAIN=localhost
+      - SESSION_COOKIE_SECURE=false
+      - SESSION_COOKIE_SAME_SITE=lax
+
+      - EXTENSIONS_AUTO_RELOAD=true
+
   frontend:
     build: 
       target: development
     volumes:
-      - ./frontend:/app 
+      - ./frontend:/app
+
+  minecraft_auth_proxy:
+    ports:
+      - "8060:8060"
+    build:
+      target: development
+    volumes:
+      - ./minecraft_auth_proxy:/app

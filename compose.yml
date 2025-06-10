@@ -16,10 +16,16 @@ services:
     ports:
       - "8055:8055"
     volumes:
-      - backend_uploads:/directus/uploads # TODO: set up minio bucket
-      - ./backend/migrations:/directus/migrations
+      # TODO: set up minio bucket
+      - backend_uploads:/directus/uploads 
+
+      - ./backend/hooks/augment_user/dist:/directus/extensions/augment_user/dist
+      - ./backend/hooks/augment_user/package.json:/directus/extensions/augment_user/package.json
     depends_on:
-      - database
+      database:
+        condition: service_started
+      minecraft_auth_proxy:
+        condition: service_healthy
     networks:
       - app_network
     restart: unless-stopped
@@ -33,6 +39,7 @@ services:
       - DB_USER=${POSTGRES_USER}
       - DB_PASSWORD=${POSTGRES_PASSWORD}
 
+      - PUBLIC_URL=${DIRECTUS_PUBLIC_URL}
       - KEY=${DIRECTUS_KEY}
       - SECRET=${DIRECTUS_SECRET}
       - ADMIN_EMAIL=${DIRECTUS_ADMIN_EMAIL}
@@ -40,12 +47,24 @@ services:
 
       - AUTH_PROVIDERS=microsoft
       - AUTH_MICROSOFT_DRIVER=openid
-      - AUTH_MICROSOFT_ISSUER_URL=https://login.microsoftonline.com/common/v2.0
-      - AUTH_MICROSOFT_TENANT_ID=${DIRECTUS_AUTH_MICROSOFT_TENANT_ID}
+      - AUTH_MICROSOFT_MODE=session
       - AUTH_MICROSOFT_CLIENT_ID=${DIRECTUS_AUTH_MICROSOFT_CLIENT_ID}
       - AUTH_MICROSOFT_CLIENT_SECRET=${DIRECTUS_AUTH_MICROSOFT_CLIENT_SECRET}
+      - AUTH_MICROSOFT_SCOPE=XboxLive.SignIn XboxLive.offline_access openid email profile offline_access
+      - AUTH_MICROSOFT_ISSUER_URL="http://minecraft_auth_proxy:8060/modified-openid-configuration/.well-known/openid-configuration"
+      - AUTH_MICROSOFT_IDENTIFIER_KEY=oid
+      - AUTH_MICROSOFT_EMAIL_KEY=email
+      - AUTH_MICROSOFT_ALLOW_PUBLIC_REGISTRATION=true
+      - AUTH_MICROSOFT_SYNC_USER_INFO=true
+      - AUTH_MICROSOFT_ICON=key
+      - AUTH_MICROSOFT_REDIRECT_ALLOW_LIST=${DIRECTUS_AUTH_MICROSOFT_REDIRECT_ALLOW_LIST}
+      
 
-      - WEBSOCKETS_ENABLED=true
+      - SESSION_COOKIE_DOMAIN=${DIRECTUS_SESSION_COOKIE_DOMAIN}
+      - SESSION_COOKIE_SECURE=true
+      - SESSION_COOKIE_SAME_SITE=None
+
+      - WEBSOCKETS_ENABLED=true      
 
   frontend:
     build:
@@ -60,6 +79,20 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+
+  minecraft_auth_proxy:
+    build:
+      context: ./minecraft_auth_proxy
+      target: production
+    networks:
+      - app_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "--timeout=1", "--tries=1", "http://localhost:8060/health"]
+      interval: 100ms
+      timeout: 100ms
+      retries: 10
+      start_period: 100ms
 
 networks:
   app_network:
