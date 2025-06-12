@@ -1,0 +1,12 @@
+{
+    "mcpServers": {
+        "dbhub": {
+            "command": "bunx @bytebase/dbhub",
+            "env": {
+                "TRANSPORT": "stdio",
+                "DSN": "postgres://directus_user:directus_password@localhost:5432/directus_db?sslmode=disable",
+                "READONLY": "true"
+            }
+        }
+    }
+}
