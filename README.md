@@ -9,7 +9,9 @@ We're using flakes to manage the development environment.
     ```
 2. **Install Nix**:
    Follow the instructions on the [Nix website](https://nixos.org/download.html) to install Nix.
-3. **Enter the development shell**:
+3. **Prepare .env**:
+   Copy .env.template to .env and specify the secrets
+4. **Enter the development shell**:
    ```bash
    nix develop
    ```

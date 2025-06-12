@@ -10,9 +10,9 @@ export async function getModifiedOpenIDConfiguration(_req: Request, res: Respons
     const openidConfiguration = "https://login.microsoftonline.com/consumers/v2.0/.well-known/openid-configuration";
     const response = await fetch(openidConfiguration) as globalThis.Response;
     const data = await response.json() as Record<string, any>;
-    
-    // Modify the response to specify our custom userinfo endpoint
-    data.userinfo_endpoint = `http://minecraft_auth_proxy:${PORT}/modified-openid-userinfo`;
+
+    // Modify the response to specify our custom token endpoint
+    data.token_endpoint = `http://oidc_proxy:${PORT}/consumers/oauth2/v2.0/token`;
 
     res.json(data);
   } catch (error) {

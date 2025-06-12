@@ -1,6 +1,6 @@
 {
-	"name": "augment_user",
-	"description": "Please enter a description for your extension",
+	"name": "user",
+	"description": "User hook",
 	"icon": "extension",
 	"version": "1.0.0",
 	"keywords": [
@@ -27,6 +27,11 @@
 	"devDependencies": {
 		"@directus/extensions-sdk": "13.1.1",
 		"@types/node": "^24.0.0",
+		"@types/uuid": "^10.0.0",
 		"typescript": "^5.8.3"
+	},
+	"dependencies": {
+		"@xboxreplay/xboxlive-auth": "^5.0.1",
+		"uuid": "^11.1.0"
 	}
 }

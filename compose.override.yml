@@ -19,10 +19,10 @@ services:
     volumes:
       - ./frontend:/app
 
-  minecraft_auth_proxy:
+  oidc_proxy:
     ports:
       - "8060:8060"
     build:
       target: development
     volumes:
-      - ./minecraft_auth_proxy:/app
+      - ./oidc_proxy:/app

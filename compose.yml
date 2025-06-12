@@ -17,14 +17,14 @@ services:
       - "8055:8055"
     volumes:
       # TODO: set up minio bucket
-      - backend_uploads:/directus/uploads 
-
-      - ./backend/hooks/augment_user/dist:/directus/extensions/augment_user/dist
-      - ./backend/hooks/augment_user/package.json:/directus/extensions/augment_user/package.json
+      - backend_uploads:/directus/uploads
+      - ./backend/schemas:/directus/schemas
+      - ./backend/migrations:/directus/migrations
+      - ./backend/hooks/user:/directus/extensions/user
     depends_on:
       database:
         condition: service_started
-      minecraft_auth_proxy:
+      oidc_proxy:
         condition: service_healthy
     networks:
       - app_network
@@ -51,14 +51,12 @@ services:
       - AUTH_MICROSOFT_CLIENT_ID=${DIRECTUS_AUTH_MICROSOFT_CLIENT_ID}
       - AUTH_MICROSOFT_CLIENT_SECRET=${DIRECTUS_AUTH_MICROSOFT_CLIENT_SECRET}
       - AUTH_MICROSOFT_SCOPE=XboxLive.SignIn XboxLive.offline_access openid email profile offline_access
-      - AUTH_MICROSOFT_ISSUER_URL="http://minecraft_auth_proxy:8060/modified-openid-configuration/.well-known/openid-configuration"
+      - AUTH_MICROSOFT_ISSUER_URL="http://oidc_proxy:8060/consumers/v2.0/.well-known/openid-configuration"
       - AUTH_MICROSOFT_IDENTIFIER_KEY=oid
-      - AUTH_MICROSOFT_EMAIL_KEY=email
       - AUTH_MICROSOFT_ALLOW_PUBLIC_REGISTRATION=true
       - AUTH_MICROSOFT_SYNC_USER_INFO=true
       - AUTH_MICROSOFT_ICON=key
       - AUTH_MICROSOFT_REDIRECT_ALLOW_LIST=${DIRECTUS_AUTH_MICROSOFT_REDIRECT_ALLOW_LIST}
-      
 
       - SESSION_COOKIE_DOMAIN=${DIRECTUS_SESSION_COOKIE_DOMAIN}
       - SESSION_COOKIE_SECURE=true
@@ -80,9 +78,9 @@ services:
     env_file:
       - .env
 
-  minecraft_auth_proxy:
+  oidc_proxy:
     build:
-      context: ./minecraft_auth_proxy
+      context: ./oidc_proxy
       target: production
     networks:
       - app_network
