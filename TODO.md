@@ -5,4 +5,5 @@
     timeout erhöhen, oder user in action hook / non blocking verknüpfen
     evtl. beides, falls microsoft oder der oidc proxy mal länger braucht
 
-
+- typegen für das frontend kann jetzt nicht mehr laufen da kein default admin mehr
+    lösung überlegen
