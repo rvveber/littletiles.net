@@ -3,6 +3,7 @@
   import { readMe, readItems } from '@directus/sdk'; // Korrigierter Import
   import { onMount } from 'svelte';
   import { PUBLIC_URL } from '$env/static/public';
+  import { PUBLIC_URL_BACKEND } from '$env/static/public';
 
   let user = null;
   let minecraft_account = null;
@@ -15,7 +16,7 @@
       if (user && user.minecraft_account) { // Sicherheitsprüfung
         minecraft_account = await directus.request(
           readItems('minecraft_accounts', {
-            filter: { minecraft_uuid: { _eq: user.minecraft_account } }
+            filter: { uuid: { _eq: user.minecraft_account } }
           })
         );
       }
@@ -27,7 +28,7 @@
   });
 
   function handleLogin() {
-    window.location.href = `http://localhost:8055/auth/login/microsoft?redirect=${PUBLIC_URL}`;
+    window.location.href = `${PUBLIC_URL_BACKEND}/auth/login/microsoft?redirect=${PUBLIC_URL}`;
   }
 
   async function handleLogout() {
@@ -40,7 +41,7 @@
 
 {#if user && minecraft_account}
   <p>Logged in.</p>
-  <p>Minecraft Account: {minecraft_account[0].minecraft_name}</p>
+  <p>Minecraft Account: {minecraft_account[0].name}</p>
 {:else if error}
   <p>Error while logging in.</p>
 {:else}
@@ -49,7 +50,7 @@
 
 <hr />
 
-<button on:click={handleLogin}>Loginadfsad</button>
+<button on:click={handleLogin}>Login</button>
 <br/>
 <button on:click={handleLogout}>Logout</button>
 

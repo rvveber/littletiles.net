@@ -120,7 +120,7 @@ services:
       test: ["CMD-SHELL", "wget -qO- 0.0.0.0:8055/server/health || exit 1"]
       timeout: 250ms
       start_period: 20s
-      start_interval: 100ms
+      start_interval: 500ms
 
   frontend:
     build:
