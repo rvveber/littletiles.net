@@ -1,0 +1,14 @@
+[
+  {
+    "policy": "abf8a154-5b1c-4a46-ac9c-7300570f4f17",
+    "role": null,
+    "sort": 1,
+    "user": null
+  },
+  {
+    "policy": "be97e97e-cb10-4fc1-94b9-677b55a5a628",
+    "role": "96fe793c-a8e4-4ec4-84c1-a7f139762227",
+    "sort": null,
+    "user": null
+  }
+]

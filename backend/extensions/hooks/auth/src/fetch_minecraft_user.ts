@@ -1,6 +1,6 @@
 import { xnet, live } from '@xboxreplay/xboxlive-auth';
-import type { HookExtensionContext } from '@directus/extensions/dist/index';
-import type { RegisterFunctions } from '@directus/extensions/dist/index';
+import type { HookExtensionContext } from '@directus/extensions';
+import type { RegisterFunctions } from '@directus/extensions';
 import type { FilterHandler } from '@directus/types/dist/events';
 
 export function registerMinecraftUserHooks({ filter }: RegisterFunctions, context: HookExtensionContext) {
@@ -91,23 +91,28 @@ export function registerMinecraftUserHooks({ filter }: RegisterFunctions, contex
     const skinTextureUrl = activeSkin?.url || null;
 
     // 8. In die Datenbank schreiben
-    const minecraftUser = {
-      uuid: mcProfile.id, // Das ist die echte UUID
-      gamertag: mcProfile.name,
-      skin_texture: skinTextureUrl,
+    const minecraftAccount = {
+      uuid: mcProfile.id,
+      name: mcProfile.name,
+      skin_url: skinTextureUrl,
       date_created: new Date().toISOString(),
       date_updated: new Date().toISOString(),
+      // user_created: payload.user?.id || null,
     };
     const { database } = context;
-    await database('minecraft_users')
-      .insert(minecraftUser)
+    await database('minecraft_accounts')
+      .insert(minecraftAccount)
       .onConflict('uuid')
       .merge({
-        gamertag: minecraftUser.gamertag,
-        skin_texture: minecraftUser.skin_texture,
-        date_updated: minecraftUser.date_updated,
+        name: minecraftAccount.name,
+        skin_url: minecraftAccount.skin_url,
+        date_updated: minecraftAccount.date_updated,
       });
-    payload.minecraft_user = minecraftUser.uuid;
+    
+    console.log(payload, meta, context, minecraftAccount.uuid);
+
+    payload.minecraft_account = minecraftAccount.uuid;
+    payload.language = meta.providerPayload?.userInfo?.locale || null;
     return payload;
   };
 

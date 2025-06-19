@@ -4,7 +4,7 @@
             "command": "bunx @bytebase/dbhub",
             "env": {
                 "TRANSPORT": "stdio",
-                "DSN": "postgres://directus_user:directus_password@localhost:5432/directus_db?sslmode=disable",
+                "DSN": "postgres://db-user:db-password@localhost:5432/db-name?sslmode=disable",
                 "READONLY": "true"
             }
         }

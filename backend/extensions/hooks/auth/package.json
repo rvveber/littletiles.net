@@ -1,6 +1,6 @@
 {
-	"name": "user",
-	"description": "User hook",
+	"name": "auth",
+	"description": "Auth hook",
 	"icon": "extension",
 	"version": "1.0.0",
 	"keywords": [

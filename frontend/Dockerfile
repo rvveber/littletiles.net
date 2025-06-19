@@ -27,6 +27,11 @@ CMD bun --bun run dev --host 0.0.0.0 --port ${PORT}
 # ============================================================
 FROM base AS build
 ARG NODE_ENV=production
+ARG PUBLIC_URL_BACKEND
+ARG PUBLIC_URL
+
+ENV PUBLIC_URL_BACKEND=${PUBLIC_URL_BACKEND}
+ENV PUBLIC_URL=${PUBLIC_URL}
 
 # package.json und bun.lock sind bereits aus der "base"-Stage vorhanden.
 COPY . .
@@ -39,20 +44,19 @@ RUN bun --bun run prepare && bun --bun run build
 # ===========================================================
 FROM oven/bun:1-alpine AS production
 
-# Installiere curl für den Healthcheck, lösche den Cache danach
-RUN apk add --no-cache curl
-
 ENV NODE_ENV=production \
     PORT=3000
+
 WORKDIR /app
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S svelte -u 1001
+
 COPY --from=build --chown=svelte:nodejs /app/build ./build
 USER svelte
 
-# HEALTHCHECK: Prüft, ob der App-Server antwortet
-HEALTHCHECK --interval=15s --timeout=3s --start-period=5s --retries=3 \
-    CMD curl --fail "http://localhost:${PORT}/" || exit 1
+# HEALTHCHECK: Prüft per wget, ob der App-Server antwortet
+HEALTHCHECK --interval=15s --timeout=5s --start-period=5s --retries=3 \
+    CMD wget -qO- --timeout=3 http://localhost:${PORT}/ || exit 1
 
 EXPOSE $PORT
 CMD ["bun", "--bun", "run", "build/index.js"]

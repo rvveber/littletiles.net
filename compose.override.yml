@@ -1,28 +1,60 @@
 # Override for development
 services:
 
-  backend:
-    environment:
-      - PUBLIC_URL=http://localhost:8055
-
-      - AUTH_MICROSOFT_REDIRECT_ALLOW_LIST=http://localhost:3000/login
-
-      - SESSION_COOKIE_DOMAIN=localhost
-      - SESSION_COOKIE_SECURE=false
-      - SESSION_COOKIE_SAME_SITE=lax
-
-      - EXTENSIONS_AUTO_RELOAD=true
-
-  frontend:
-    build: 
-      target: development
-    volumes:
-      - ./frontend:/app
-
   oidc_proxy:
+    stop_grace_period: 500ms
     ports:
       - "8060:8060"
     build:
       target: development
     volumes:
       - ./oidc_proxy:/app
+
+  storage:
+    stop_grace_period: 500ms
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Console
+    environment:
+      - MINIO_DEBUG=true
+
+  backend:
+    stop_grace_period: 500ms
+    build:
+      target: development
+    ports:
+      - "8055:8055"
+    volumes:
+      - ./backend/schema-sync:/directus/schema-sync
+      - ./backend/extensions/hooks:/directus/extensions
+    environment:
+      - EXTENSIONS_AUTO_RELOAD=true
+
+      - SESSION_COOKIE_DOMAIN=localhost
+      - SESSION_COOKIE_SECURE=false
+      - SESSION_COOKIE_SAME_SITE=lax
+
+      - AUTH_MICROSOFT_DEFAULT_ROLE_ID=96fe793c-a8e4-4ec4-84c1-a7f139762227
+
+      - SCHEMA_SYNC=BOTH
+
+  frontend:
+    stop_grace_period: 500ms
+    build: 
+      target: development
+    volumes:
+      - ./frontend:/app
+
+  frontend-typegen:
+    image: oven/bun:1-alpine
+    working_dir: /app
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      backend:
+        condition: service_healthy
+    entrypoint: >
+      sh -c "bunx directus-sdk-typegen \
+        -u ${DIRECTUS_PUBLIC_URL} \
+        -t ${DIRECTUS_ADMIN_TOKEN} \
+        -o src/lib/api/directusTypes.ts"

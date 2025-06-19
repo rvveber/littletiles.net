@@ -26,10 +26,6 @@ ENV NODE_ENV=production \
 
 WORKDIR /app
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S bun -u 1001
-
 # Copy dependencies from base stage
 COPY --from=base --chown=bun:nodejs /app/node_modules ./node_modules
 COPY --from=base --chown=bun:nodejs /app/package.json ./package.json
