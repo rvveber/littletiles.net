@@ -10,11 +10,11 @@
     system = "x86_64-linux";
     pkgs   = nixpkgs.legacyPackages.${system};
 
-    # ─────────────────── Haupt-Command "dev" ───────────────────
+    # ─────────────────── Main Command "dev" ───────────────────
     devScript = pkgs.writeShellScriptBin "dev" ''
       set -euo pipefail
 
-      cmd="''${1:-}"   # start | stop | restart | logs | empty
+      cmd="''${1:-}"      # start | stop | restart | logs | empty
       target="''${2:-}"   # optional container name (may be empty)
 
       usage() {
@@ -30,12 +30,36 @@
         fi
       }
 
+      # Read URLs from .env and print a framed info block
+      print_info() {
+        if [ -f .env ]; then
+          FRONTEND_URL=$(grep -E '^FRONTEND_PUBLIC_URL=' .env | cut -d '=' -f2- || true)
+          DIRECTUS_URL=$(grep -E '^DIRECTUS_PUBLIC_URL=' .env | cut -d '=' -f2- || true)
+
+          FRONTEND_URL="''${FRONTEND_URL:-<unset>}"
+          DIRECTUS_URL="''${DIRECTUS_URL:-<unset>}"
+
+          cat <<EOF
+╭──────────────────────────────────────────────────────────╮
+   You can access the services in your browser at:
+
+   Frontend ➜ $FRONTEND_URL
+   Backend  ➜ $DIRECTUS_URL
+   Storage  ➜ http://localhost:9001
+   Database ➜ http://localhost:9003
+╰──────────────────────────────────────────────────────────╯
+EOF
+        else
+          echo "Warning: .env file not found – cannot display service URLs." >&2
+        fi
+      }
+
       case "$cmd" in
-        start)   compose up --build -d --remove-orphans ;;
-        stop)    compose stop                          ;;
-        restart) compose restart                       ;;
-        logs)    compose logs -f                       ;;
-        *)       usage                                 ;;
+        start)   compose up --build -d --remove-orphans && print_info ;;
+        stop)    compose down                                          ;;
+        restart) compose down && compose up --build -d --remove-orphans && print_info ;;
+        logs)    compose logs -f                                       ;;
+        *)       usage                                                 ;;
       esac
     '';
 
@@ -52,7 +76,6 @@
         if [[ $COMP_CWORD -eq 1 ]]; then
           COMPREPLY=( $(compgen -W "$actions" -- "$cur") )
         else
-          # try to list compose services only once; cache in array
           local services
           services=$(docker compose config --services 2>/dev/null)
           COMPREPLY=( $(compgen -W "$services" -- "$cur") )
@@ -62,13 +85,13 @@
       complete -F _dev_complete dev
     '';
 
-    # ───────── Binär-Kurzschalter (0 / 1 / 01) ─────────
+    # ───────── Binary Shortcuts (0 / 1 / 01) ─────────
     oneScript      = pkgs.writeShellScriptBin "1"  ''exec dev start    "$@"'';
     zeroScript     = pkgs.writeShellScriptBin "0"  ''exec dev stop     "$@"'';
     oneZeroScript  = pkgs.writeShellScriptBin "01" ''exec dev restart  "$@"'';
   in
   {
-    # ───────────────────────── Dev-Shell ─────────────────────────
+    # ───────────────────────── Dev Shell ─────────────────────────
     devShells.${system}.default = pkgs.mkShell {
       nativeBuildInputs = [
         pkgs.bashInteractive
@@ -77,13 +100,13 @@
         devScript oneScript zeroScript oneZeroScript
       ];
 
-      shellHook = ''
+      shellHook = ''        
         # Banner
         cat <<'EOF'
 ╭─────────────────────────────────────────╮
-│  LittleTiles.net Dev-Shell              │
+│  LittleTiles.net Dev Shell              │
 │                                         │
-│  Befehle:                               │
+│  Commands:                              │
 │    dev start [container]                │
 │    dev stop  [container]                │
 │    dev restart [container]              │
@@ -95,10 +118,14 @@
 ╰─────────────────────────────────────────╯
 EOF
 
-        # Komfort-Alias für dev
+        # propagate host UID/GID into the nix-shell
+        export UID=$(id -u)
+        export GID=$(id -g)
+
+        # Convenience alias for dev
         alias dev="nix run .#dev --"
 
-        # Bash-Completion laden (funktioniert nur, wenn bashInteractive)
+        # Load bash completion (only if bashInteractive)
         if [[ -n "''${BASH_VERSION:-}" ]]; then
           source ${devCompletion}
         fi
@@ -118,7 +145,7 @@ EOF
     apps.${system}.default = {
       type = "app";
       program = "${devScript}/bin/dev";
-      meta.description = "Multipurpose dev helper (start/stop/restart/logs).";
+      meta.description = "Multipurpose development helper (start/stop/restart/logs).";
     };
   };
 }

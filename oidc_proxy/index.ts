@@ -2,7 +2,7 @@ import express from 'express';
 import { requestLoggingMiddleware } from './src/middleware/logging.js';
 import { notFoundHandler } from './src/middleware/errorHandler.js';
 import { healthCheck } from './src/controllers/health.js';
-import { getModifiedOpenIDConfiguration } from './src/controllers/modifiedOpenIDConfiguration.js';
+import { getModifiedOpenIDConfiguration, initializeOpenIDConfiguration } from './src/controllers/modifiedOpenIDConfiguration.js';
 import { getUserInfoCompatibleToken } from './src/controllers/userInfoCompatibleToken.js';
 import { setupGracefulShutdown } from './src/utils/gracefulShutdown.js';
 
@@ -29,11 +29,24 @@ app.post('/consumers/oauth2/v2.0/token', getUserInfoCompatibleToken);
 // 404 handler with detailed logging
 app.use(notFoundHandler);
 
-// Start the server
-const server = app.listen(PORT, () => {
-    console.log(`Express server running on port ${PORT}`);
-});
+// Initialize OpenID configuration cache before starting the server
+async function startServer() {
+  try {
+    await initializeOpenIDConfiguration();
+    
+    // Start the server
+    const server = app.listen(PORT, () => {
+        console.log(`Express server running on port ${PORT}`);
+    });
 
-// Setup graceful shutdown handling
-setupGracefulShutdown(server);
+    // Setup graceful shutdown handling
+    setupGracefulShutdown(server);
+  } catch (error) {
+    console.error('Failed to initialize server:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 

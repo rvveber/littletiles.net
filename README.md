@@ -24,6 +24,8 @@ We're using flakes to manage the development environment reproducable and encaps
 Done! <br>
 Both Frontend and Backend support hot reloading!
 
+# Default Credentials
+All default credentials are to be found in your .env file.
 
 <br>
 <br>

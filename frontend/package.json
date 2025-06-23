@@ -9,7 +9,9 @@
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"typegen": "tmp=$(mktemp) && sed -e '1i {\"data\":' -e '$a }' ../backend/schema-sync/data/schema.json > \"$tmp\" && bunx directus-typeforge -i \"$tmp\" -o src/lib/types/directus/api-collection.ts && rm \"$tmp\"",
+		"typegen:watch": "bunx chokidar '../backend/schema-sync/data/schema.json' -c \"bun run typegen\""
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^6.0.0",

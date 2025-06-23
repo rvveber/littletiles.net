@@ -5,5 +5,19 @@
     "id": "96fe793c-a8e4-4ec4-84c1-a7f139762227",
     "name": "Administrator",
     "parent": null
+  },
+  {
+    "description": "The role users get by default",
+    "icon": "person",
+    "id": "3fcb70a5-6db0-4d99-a5a7-38dcb6eb1bca",
+    "name": "Authenticated",
+    "parent": null
+  },
+  {
+    "description": "Can access the backend and moderate directly",
+    "icon": "supervised_user_circle",
+    "id": "c4d0fccb-10ed-4f19-a810-ca02df2b6498",
+    "name": "Moderator",
+    "parent": null
   }
 ]

@@ -2,8 +2,8 @@ import { xnet, live } from '@xboxreplay/xboxlive-auth';
 import type { HookExtensionContext } from '@directus/extensions';
 import type { RegisterFunctions } from '@directus/extensions';
 import type { FilterHandler } from '@directus/types/dist/events';
-
-export function registerMinecraftUserHooks({ filter }: RegisterFunctions, context: HookExtensionContext) {
+import type {   } from '@directus/extensions-sdk';
+export function registerMinecraftUserHooks(register: RegisterFunctions, context: HookExtensionContext) {
   const clientId = context.env.AUTH_MICROSOFT_CLIENT_ID;
   const clientSecret = context.env.AUTH_MICROSOFT_CLIENT_SECRET;
   
@@ -108,16 +108,13 @@ export function registerMinecraftUserHooks({ filter }: RegisterFunctions, contex
         skin_url: minecraftAccount.skin_url,
         date_updated: minecraftAccount.date_updated,
       });
-    
-    console.log(payload, meta, context, minecraftAccount.uuid);
 
     payload.minecraft_account = minecraftAccount.uuid;
-    payload.language = meta.providerPayload?.userInfo?.locale || null;
     return payload;
   };
 
-  filter('auth.create', fetchMinecraftUser);
-  filter('auth.update', fetchMinecraftUser);
+  register.filter('auth.create', fetchMinecraftUser);
+  register.filter('auth.update', fetchMinecraftUser);
 }
 
 

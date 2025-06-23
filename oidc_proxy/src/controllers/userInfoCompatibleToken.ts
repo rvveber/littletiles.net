@@ -12,36 +12,37 @@ export async function getUserInfoCompatibleToken(req: Request, res: Response): P
   console.log(`[${timestamp}] /consumers/oauth2/v2.0/token - Request Body:`, JSON.stringify(req.body, null, 2));
 
   try {
-    // Extract the original form data from the request
-    const formData = new URLSearchParams();
-
-    // Copy all form fields from the original request
-    Object.keys(req.body).forEach(key => {
-      formData.append(key, req.body[key]);
+    // Use the original headers as base, only overriding what's necessary
+    const proxyHeaders: Record<string, string> = {};
+    
+    // Copy all headers except hop-by-hop headers that shouldn't be forwarded
+    const skipHeaders = new Set(['host', 'connection', 'content-length', 'transfer-encoding', 'upgrade']);
+    
+    Object.entries(req.headers).forEach(([key, value]) => {
+      if (!skipHeaders.has(key.toLowerCase()) && value !== undefined) {
+        // Handle both string and string[] values
+        proxyHeaders[key] = Array.isArray(value) ? value.join(', ') : value;
+      }
     });
+    
+    // Ensure these headers are set correctly for the proxied request
+    proxyHeaders['content-type'] = 'application/x-www-form-urlencoded';
+    proxyHeaders['accept'] = 'application/json';
 
-    // Override the scope to exclude Xbox Live scopes and use only standard OpenID scopes
-    // This ensures the token is compatible with standard userinfo endpoints
+    // Extract and modify form data efficiently
+    const formData = new URLSearchParams(req.body);
+    
+    // Only modify the scope if it exists
+    // Note: Doesn't work because Directus is not actually sending any scopes to the token endpoint 
+    // if (req.body.scope) {
+    //   const authorizationScopes: string[] = req.body.scope.split(' ');
+    //   const userInfoCompatibleScopes = authorizationScopes.filter(scope => !scope.toLowerCase().startsWith('xbox'));
+    //   formData.set('scope', userInfoCompatibleScopes.join(' '));
+    // }
     formData.set('scope', 'profile email openid offline_access');
 
+
     console.log(`[${timestamp}] /consumers/oauth2/v2.0/token - Modified form data:`, formData.toString());
-
-    // Prepare headers for the proxied request, preserving important headers from the original request
-    const proxyHeaders: Record<string, string> = {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'application/json'
-    };
-
-    // Preserve the Authorization header if present (contains client credentials)
-    if (req.headers.authorization) {
-      proxyHeaders['Authorization'] = req.headers.authorization;
-    }
-
-    // Preserve User-Agent if present
-    if (req.headers['user-agent']) {
-      proxyHeaders['User-Agent'] = req.headers['user-agent'];
-    }
-
     console.log(`[${timestamp}] /consumers/oauth2/v2.0/token - Proxy headers:`, JSON.stringify(proxyHeaders, null, 2));
 
     // Forward the request to Microsoft's token endpoint with modified scope

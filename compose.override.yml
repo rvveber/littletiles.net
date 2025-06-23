@@ -2,13 +2,15 @@
 services:
 
   oidc_proxy:
+    build:
+      target: development
     stop_grace_period: 500ms
     ports:
       - "8060:8060"
-    build:
-      target: development
     volumes:
       - ./oidc_proxy:/app
+    user: ${UID}:${GID}
+
 
   storage:
     stop_grace_period: 500ms
@@ -28,15 +30,19 @@ services:
       - ./backend/schema-sync:/directus/schema-sync
       - ./backend/extensions/hooks:/directus/extensions
     environment:
-      - EXTENSIONS_AUTO_RELOAD=true
-
       - SESSION_COOKIE_DOMAIN=localhost
       - SESSION_COOKIE_SECURE=false
       - SESSION_COOKIE_SAME_SITE=lax
 
-      - AUTH_MICROSOFT_DEFAULT_ROLE_ID=96fe793c-a8e4-4ec4-84c1-a7f139762227
+      - AUTH_DISABLE_DEFAULT=false
+      # uncomment to make new microsoft accounts an admin by default
+      # helps to develop without having to care about permissions
+      # - AUTH_MICROSOFT_DEFAULT_ROLE_ID=96fe793c-a8e4-4ec4-84c1-a7f139762227
 
+      - EXTENSIONS_MUST_LOAD=false
+      - EXTENSIONS_AUTO_RELOAD=true
       - SCHEMA_SYNC=BOTH
+    user: ${UID}:${GID}
 
   frontend:
     stop_grace_period: 500ms
@@ -44,17 +50,18 @@ services:
       target: development
     volumes:
       - ./frontend:/app
-
-  frontend-typegen:
-    image: oven/bun:1-alpine
-    working_dir: /app
-    volumes:
-      - ./frontend:/app
-    depends_on:
-      backend:
-        condition: service_healthy
-    entrypoint: >
-      sh -c "bunx directus-sdk-typegen \
-        -u ${DIRECTUS_PUBLIC_URL} \
-        -t ${DIRECTUS_ADMIN_TOKEN} \
-        -o src/lib/api/directusTypes.ts"
+      - ./backend/schema-sync/data:/backend/schema-sync/data
+    user: ${UID}:${GID}
+   
+  database-explorer:
+    stop_grace_period: 500ms
+    image: sosedoff/pgweb:latest
+    restart: unless-stopped
+    ports:
+      - "9003:8081"
+    environment:
+      - PGWEB_DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB}?sslmode=disable
+    networks:
+      - app_network
+    env_file:
+      - .env

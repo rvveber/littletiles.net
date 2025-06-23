@@ -18,5 +18,25 @@
     "id": "be97e97e-cb10-4fc1-94b9-677b55a5a628",
     "ip_access": null,
     "name": "Administrator"
+  },
+  {
+    "admin_access": false,
+    "app_access": false,
+    "description": "The default policy for authenticated users",
+    "enforce_tfa": false,
+    "icon": "person",
+    "id": "2fce8722-d3eb-4d7a-b831-9bafca4b7015",
+    "ip_access": null,
+    "name": "Authenticated"
+  },
+  {
+    "admin_access": false,
+    "app_access": true,
+    "description": "The policy for the moderator",
+    "enforce_tfa": false,
+    "icon": "supervised_user_circle",
+    "id": "ae666f53-9244-4e8d-938c-ef74c40a5382",
+    "ip_access": null,
+    "name": "Moderator"
   }
 ]

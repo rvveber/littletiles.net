@@ -6,16 +6,30 @@ COPY package.json bun.lock* ./
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile
 
-# Stage 2: Development stage
-# ===========================
-FROM base AS development
+
+
+
+
+
+FROM oven/bun:1-alpine AS development
 
 ENV NODE_ENV=development \
     PORT=8060
+WORKDIR /app
 
-COPY . .
 EXPOSE $PORT
-CMD ["bun", "--bun", "run", "index.ts"]
+
+COPY --from=base --chown=bun:nodejs /app/node_modules /temp/node_modules
+
+CMD ["sh", "-c", "\
+if [ ! -d /app/node_modules ]; then \
+  cp -r /temp/node_modules /app && rm -rf /temp/node_modules; \
+fi; \
+bun --bun --watch run index.ts\
+"]
+
+
+
 
 # Stage 3: Production stage
 # ==========================
@@ -28,7 +42,6 @@ WORKDIR /app
 
 # Copy dependencies from base stage
 COPY --from=base --chown=bun:nodejs /app/node_modules ./node_modules
-COPY --from=base --chown=bun:nodejs /app/package.json ./package.json
 
 # Copy source code
 COPY --chown=bun:nodejs . .

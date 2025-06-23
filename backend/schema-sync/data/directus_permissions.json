@@ -1,1 +1,48 @@
-[]
+[
+  {
+    "action": "read",
+    "collection": "directus_users",
+    "fields": [
+      "minecraft_account",
+      "email",
+      "avatar",
+      "first_name",
+      "last_name",
+      "language",
+      "role",
+      "id",
+      "tags",
+      "description"
+    ],
+    "permissions": null,
+    "policy": "2fce8722-d3eb-4d7a-b831-9bafca4b7015",
+    "presets": null,
+    "validation": null
+  },
+  {
+    "action": "read",
+    "collection": "minecraft_accounts",
+    "fields": [
+      "uuid",
+      "date_created",
+      "date_updated",
+      "name",
+      "skin_url"
+    ],
+    "permissions": null,
+    "policy": "2fce8722-d3eb-4d7a-b831-9bafca4b7015",
+    "presets": null,
+    "validation": null
+  },
+  {
+    "action": "read",
+    "collection": "minecraft_accounts",
+    "fields": [
+      "*"
+    ],
+    "permissions": null,
+    "policy": "ae666f53-9244-4e8d-938c-ef74c40a5382",
+    "presets": null,
+    "validation": null
+  }
+]

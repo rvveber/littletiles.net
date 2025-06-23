@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "bun --bun run --watch index.ts",
     "start": "bun --bun run index.ts",
+    "some": "change",
     "build": "bun build index.ts --outdir=dist --target=bun",
+    
     "preview": "bun --bun run dist/index.js"
   },
   "devDependencies": {
