@@ -9,7 +9,7 @@ services:
       - "8060:8060"
     volumes:
       - ./oidc_proxy:/app
-    user: ${UID}:${GID}
+    user: ${UID:-1000}:${GID:-1000}
 
 
   storage:
@@ -42,7 +42,7 @@ services:
       - EXTENSIONS_MUST_LOAD=false
       - EXTENSIONS_AUTO_RELOAD=true
       - SCHEMA_SYNC=BOTH
-    user: ${UID}:${GID}
+    user: ${UID:-1000}:${GID:-1000}
 
   frontend:
     stop_grace_period: 500ms
@@ -51,8 +51,8 @@ services:
     volumes:
       - ./frontend:/app
       - ./backend/schema-sync/data:/backend/schema-sync/data
-    user: ${UID}:${GID}
-   
+    user: ${UID:-1000}:${GID:-1000}
+
   database-explorer:
     stop_grace_period: 500ms
     image: sosedoff/pgweb:latest

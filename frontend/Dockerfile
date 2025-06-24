@@ -43,6 +43,9 @@ CMD ["sh", "-c", "\
   if [ ! -d /app/.svelte-kit ]; then \
     cp -r /temp/.svelte-kit /app; \
   fi && \
+  if [ ! -d /app/lib/paraglide ]; then \
+    cp -r /temp/lib/paraglide /app/lib; \
+  fi && \
   bun --bun run prepare && \
   bun --bun run dev --host 0.0.0.0 --port ${PORT}\
 "]
